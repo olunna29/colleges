@@ -50,7 +50,70 @@ set_engine("lm") |>
 ```
 
 ```{r}
-tidy(fit_colleges, conf.int = TRUE)
+#| label: fig-predictions
+#| fig-width: 8
+#| fig-height: 5.5
+#| fig-format: svg
+#| dpi: 300
+#| message: false
+#| warning: false
+
+plot_predictions(fit_colleges, condition = c("tuition", "selectivity"), draw = FALSE) |> 
+  ggplot(aes(x = tuition, y = estimate, color = selectivity, fill = selectivity)) +
+  # Raw data points in the background for context
+  geom_point(data = x, aes(x = tuition, y = grad_rate, color = selectivity), 
+             alpha = 0.15, size = 1.8, shape = 16, inherit.aes = FALSE) +
+  # Confidence intervals
+  geom_ribbon(aes(ymin = conf.low, ymax = conf.high), alpha = 0.08, color = NA) +
+  # Prediction lines
+  geom_line(linewidth = 1.2) +
+  # Custom scales
+  scale_x_continuous(labels = scales::dollar_format(prefix = "$", suffix = "K", accuracy = 1, scale = 10)) +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+  scale_color_manual(values = c(
+    "Elite" = "#3E1B5C",
+    "Highly Selective" = "#2B5C8F",
+    "Moderately Selective" = "#1D8275",
+    "Lowly Selective" = "#D17B24",
+    "Non-selective" = "#B23B3B"
+  )) +
+  scale_fill_manual(values = c(
+    "Elite" = "#3E1B5C",
+    "Highly Selective" = "#2B5C8F",
+    "Moderately Selective" = "#1D8275",
+    "Lowly Selective" = "#D17B24",
+    "Non-selective" = "#B23B3B"
+  )) +
+  # Label details
+  labs(
+    title = "Expected Graduation Rate by College Selectivity and Tuition",
+    subtitle = "Predicted graduation rates rise with tuition costs across all selectivity levels,\nbut elite and highly selective schools maintain much higher baselines.",
+    x = "Annual Tuition",
+    y = "Graduation Rate",
+    color = "Selectivity Tier",
+    fill = "Selectivity Tier",
+    caption = "Source: IPEDS (Integrated Postsecondary Education Data System)\nNote: Model adjusted for tuition (> $20k) and selectivity tier."
+  ) +
+  # Clean, premium theme
+  theme_minimal(base_family = "sans") +
+  theme(
+    plot.title = element_text(face = "bold", size = 14, color = "#1A1D20", margin = margin(b = 6)),
+    plot.subtitle = element_text(size = 10.5, color = "#4A5568", lineheight = 1.25, margin = margin(b = 15)),
+    plot.caption = element_text(size = 8, color = "#718096", margin = margin(t = 15)),
+    axis.title = element_text(face = "bold", size = 10, color = "#2D3748"),
+    axis.title.x = element_text(margin = margin(t = 10)),
+    axis.title.y = element_text(margin = margin(r = 10)),
+    axis.text = element_text(size = 9, color = "#4A5568"),
+    panel.grid.major = element_line(color = "#EDF2F7", linewidth = 0.5),
+    panel.grid.minor = element_blank(),
+    legend.position = "top",
+    legend.title = element_text(face = "bold", size = 9, color = "#2D3748"),
+    legend.text = element_text(size = 9, color = "#4A5568"),
+    legend.margin = margin(b = 5),
+    plot.margin = margin(20, 20, 20, 20),
+    plot.background = element_rect(fill = "#F8FAFC", color = NA),
+    panel.background = element_rect(fill = "#F8FAFC", color = NA)
+  )
 ```
 
-Summary: For a college/university, graduation rates can be a very important indicator of it's quality of education and demographic of students, but how does tutition impact this measure? Using data from IPEDS on U.S. 4-year colleges and universities, we plan to build a model that will measure the difference in expected graduation rates between colleges with tuition of $20,000 and colleges with tuition of $30,000. However, our model could have some limitations due to tuition not necessarily being representative of the amount students actually have to pay because financial aid varies from school to school; this could cause it's influence on graduation rates to change. We modeled the normally distributed variable of graduation rate as a linear function of tuition and selectivity.
+Summary: For a college/university, graduation rates can be a very important indicator of it's quality of education and demographic of students, but how does tutition impact this measure? Using data from IPEDS on U.S. 4-year colleges and universities, we plan to build a model that will measure the difference in expected graduation rates between colleges with tuition of $20,000 and colleges with tuition of $30,000. However, our model could have some limitations due to tuition not necessarily being representative of the amount students actually have to pay because financial aid varies from school to school; this could cause it's influence on graduation rates to change. We modeled the normally distributed variable of graduation rate as a linear function of tuition and selectivity. According to our model, each level of selectivity has it's own base graduation rate with more selective schools having higher baselines then graduation rate goes up 9% on average for every $10,000 increase of tuition, though the true amount could be between 7.5% and 10.5% due to uncertainty.

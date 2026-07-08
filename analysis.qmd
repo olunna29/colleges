@@ -12,6 +12,7 @@ library(tidyverse)
 library(primer.data)
 library(tidymodels)
 library(broom)
+library(marginaleffects)
 ```
 
 
